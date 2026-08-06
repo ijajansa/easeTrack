@@ -7,7 +7,9 @@ use App\Models\Device;
 use App\Models\Screenshot;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class EmployeeController extends Controller
@@ -29,7 +31,44 @@ class EmployeeController extends Controller
         ]);
     }
 
-    public function show(Device $device): View
+    public function create(Request $request): View
+    {
+        return view('admin.employees.create', [
+            'pageTitle' => 'Create Employee',
+            'pageSubtitle' => 'Add a new tracked device and generate secure credentials automatically.',
+            'defaults' => [
+                'employee_name' => old('employee_name', ''),
+                'status' => old('status', 'active'),
+                'screenshot_interval_seconds' => old('screenshot_interval_seconds', config('easetrack.default_interval_seconds')),
+            ],
+        ]);
+    }
+
+    public function store(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'employee_name' => ['required', 'string', 'max:255'],
+            'status' => ['required', 'in:active,inactive'],
+            'screenshot_interval_seconds' => ['nullable', 'integer', 'min:5', 'max:3600'],
+        ]);
+
+        $device = Device::query()->create([
+            'employee_name' => $validated['employee_name'],
+            'device_id' => $this->generateUniqueDeviceId(),
+            'api_token' => $this->generateUniqueApiToken(),
+            'status' => $validated['status'],
+            'screenshot_interval_seconds' => $validated['screenshot_interval_seconds'] ?? null,
+            'working_seconds' => 0,
+            'idle_seconds' => 0,
+            'current_status' => $validated['status'] === 'active' ? 'active' : 'inactive',
+        ]);
+
+        return redirect()
+            ->route('admin.employees.setup', $device)
+            ->with('status', 'Employee created successfully. Share the setup details with the employee.');
+    }
+
+    public function show(Device $device, Request $request): View
     {
         $activityPreview = $device->activityLogs()
             ->latest('recorded_at')
@@ -66,6 +105,54 @@ class EmployeeController extends Controller
                 'lastPingIso' => optional($device->last_ping_at)->toIso8601String(),
             ],
         ]);
+    }
+
+    public function setup(Device $device, Request $request): View
+    {
+        return view('admin.employees.setup', [
+            'pageTitle' => 'Employee Setup',
+            'pageSubtitle' => 'Copy the generated credentials and share the employee setup details.',
+            'device' => $device->loadCount('screenshots')->loadMax('screenshots', 'created_at'),
+            'setupUrls' => $this->setupUrls($request),
+        ]);
+    }
+
+    public function edit(Device $device, Request $request): View
+    {
+        return view('admin.employees.edit', [
+            'pageTitle' => 'Edit Employee',
+            'pageSubtitle' => 'Update employee identity, tracking status, and interval settings.',
+            'device' => $device,
+            'setupUrls' => $this->setupUrls($request),
+        ]);
+    }
+
+    public function update(Request $request, Device $device): RedirectResponse
+    {
+        $validated = $request->validate([
+            'employee_name' => ['required', 'string', 'max:255'],
+            'status' => ['required', 'in:active,inactive'],
+            'screenshot_interval_seconds' => ['nullable', 'integer', 'min:5', 'max:3600'],
+        ]);
+
+        $device->forceFill([
+            'employee_name' => $validated['employee_name'],
+            'status' => $validated['status'],
+            'screenshot_interval_seconds' => $validated['screenshot_interval_seconds'] ?? null,
+        ])->save();
+
+        return redirect()
+            ->route('admin.employees.show', $device)
+            ->with('status', 'Employee updated successfully.');
+    }
+
+    public function destroy(Device $device): RedirectResponse
+    {
+        $device->delete();
+
+        return redirect()
+            ->route('admin.employees.index')
+            ->with('status', 'Employee deleted successfully.');
     }
 
     public function export(Request $request): StreamedResponse
@@ -130,5 +217,41 @@ class EmployeeController extends Controller
         }
 
         return $query;
+    }
+
+    private function setupUrls(Request $request): array
+    {
+        $baseUrl = rtrim($request->getSchemeAndHttpHost(), '/');
+
+        return [
+            'admin' => $baseUrl . '/admin/login',
+            'server' => $baseUrl,
+        ];
+    }
+
+    private function generateUniqueDeviceId(): string
+    {
+        $maxSuffix = Device::query()
+            ->where('device_id', 'like', 'device-%')
+            ->pluck('device_id')
+            ->map(function (string $deviceId): int {
+                if (! preg_match('/^device-(\d+)$/', $deviceId, $matches)) {
+                    return 0;
+                }
+
+                return (int) $matches[1];
+            })
+            ->max() ?? 0;
+
+        return sprintf('device-%03d', $maxSuffix + 1);
+    }
+
+    private function generateUniqueApiToken(): string
+    {
+        do {
+            $token = Str::random(64);
+        } while (Device::query()->where('api_token', $token)->exists());
+
+        return $token;
     }
 }

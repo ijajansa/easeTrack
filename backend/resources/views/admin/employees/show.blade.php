@@ -1,6 +1,12 @@
 @extends('layouts.admin')
 
 @section('content')
+    @if (session('status'))
+        <div class="card soft" style="margin-bottom:18px; border-color: rgba(22,163,74,0.28); background: rgba(22,163,74,0.08); color:#166534;">
+            {{ session('status') }}
+        </div>
+    @endif
+
     <div class="hero">
         <section class="hero-main">
             <div class="actions" style="margin-bottom:12px;">
@@ -54,6 +60,8 @@
             <div class="actions" style="margin-top:18px;">
                 <a class="ghost" href="{{ route('admin.employees.index') }}">Back to employees</a>
                 <a class="ghost" href="{{ route('admin.screenshots.index', ['device_id' => $device->device_id]) }}">Open screenshots</a>
+                <a class="ghost" href="{{ route('admin.employees.edit', $device) }}">Edit employee</a>
+                <a class="ghost" href="{{ route('admin.employees.setup', $device) }}">Setup sheet</a>
             </div>
         </section>
 

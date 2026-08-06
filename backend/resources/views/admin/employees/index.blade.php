@@ -5,6 +5,7 @@
         <div class="section-title">
             <h3>Employee Board</h3>
             <div class="actions">
+                <a class="btn primary" href="{{ route('admin.employees.create') }}">Create employee</a>
                 <a class="btn primary" href="{{ route('admin.employees.export', request()->query()) }}">Export CSV</a>
                 <a class="btn" href="{{ route('admin.employees.index') }}">Reset</a>
             </div>
