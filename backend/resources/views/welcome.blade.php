@@ -732,6 +732,74 @@
             color: rgba(255,255,255,0.84);
         }
 
+        .contact-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+            margin-top: 24px;
+        }
+
+        .contact-card {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            padding: 18px;
+            border-radius: 22px;
+            background: rgba(255,255,255,0.10);
+            border: 1px solid rgba(255,255,255,0.14);
+            backdrop-filter: blur(10px);
+        }
+
+        .contact-card__icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            display: grid;
+            place-items: center;
+            flex: 0 0 auto;
+            background: linear-gradient(135deg, rgba(255,255,255,0.20), rgba(255,255,255,0.08));
+            border: 1px solid rgba(255,255,255,0.12);
+            font-size: 20px;
+        }
+
+        .contact-card__label {
+            display: block;
+            color: rgba(255,255,255,0.70);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            font-weight: 800;
+            margin-bottom: 6px;
+        }
+
+        .contact-card a,
+        .contact-card span {
+            color: white;
+        }
+
+        .contact-card strong {
+            display: block;
+            font-size: 18px;
+            line-height: 1.4;
+        }
+
+        .cta-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+            padding: 18px 2px 0;
+            margin-top: 18px;
+            border-top: 1px solid rgba(255,255,255,0.14);
+            color: rgba(255,255,255,0.82);
+        }
+
+        .cta-footer a {
+            color: white;
+            font-weight: 700;
+        }
+
         .footer {
             padding: 26px 0 40px;
             color: #475569;
@@ -883,6 +951,19 @@
 
             .story-copy {
                 padding: 4px 2px 2px;
+            }
+
+            .contact-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .contact-card {
+                padding: 16px;
+            }
+
+            .cta-footer {
+                flex-direction: column;
+                align-items: flex-start;
             }
         }
     </style>
@@ -1229,9 +1310,31 @@
                         The landing page is live at the root URL, and the admin console is ready behind it.
                         You can introduce the platform from the public page, then send visitors straight into the admin login when they’re ready.
                     </p>
+                    <div class="contact-grid">
+                        <div class="contact-card">
+                            <div class="contact-card__icon">☎</div>
+                            <div>
+                                <span class="contact-card__label">Contact number</span>
+                                <strong><a href="tel:+917350828151">+91 73508 28151</a></strong>
+                                <span>Reach the SnapTrack team directly.</span>
+                            </div>
+                        </div>
+                        <div class="contact-card">
+                            <div class="contact-card__icon">✉</div>
+                            <div>
+                                <span class="contact-card__label">Email address</span>
+                                <strong><a href="mailto:info@snaptrack.co.in">info@snaptrack.co.in</a></strong>
+                                <span>For questions, setup, and support.</span>
+                            </div>
+                        </div>
+                    </div>
                     <div class="hero-actions" style="margin-top:22px;">
                         <a class="btn primary" href="{{ route('admin.login') }}">Open admin login</a>
                         <a class="btn" href="#platform">See features again</a>
+                    </div>
+                    <div class="cta-footer">
+                        <span>Available for setup, onboarding, and product walkthroughs.</span>
+                        <a href="mailto:info@snaptrack.co.in">info@snaptrack.co.in</a>
                     </div>
                 </div>
             </div>
@@ -1246,7 +1349,10 @@
                         <span>Workforce intelligence console</span>
                     </div>
                 </div>
-                <div>Built for employee monitoring, screenshots, and time tracking.</div>
+                <div style="display:grid; gap:4px; justify-items:flex-start;">
+                    <span>Built for employee monitoring, screenshots, and time tracking.</span>
+                    <span><a href="tel:+917350828151" style="font-weight:700; color:#0f172a;">+91 73508 28151</a> · <a href="mailto:info@snaptrack.co.in" style="font-weight:700; color:#0f172a;">info@snaptrack.co.in</a></span>
+                </div>
             </div>
         </footer>
     </main>
