@@ -133,6 +133,67 @@
             flex-wrap: wrap;
         }
 
+        .nav-panel {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+        }
+
+        .nav-toggle {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            border: 1px solid rgba(148, 163, 184, 0.22);
+            background: rgba(255, 255, 255, 0.88);
+            color: #0f172a;
+            box-shadow: 0 14px 28px rgba(15, 23, 42, 0.08);
+            cursor: pointer;
+            transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+        }
+
+        .nav-toggle:hover {
+            transform: translateY(-1px);
+            border-color: rgba(37, 99, 235, 0.28);
+            box-shadow: 0 16px 28px rgba(15, 23, 42, 0.10);
+        }
+
+        .nav-toggle-lines {
+            position: relative;
+            width: 18px;
+            height: 14px;
+        }
+
+        .nav-toggle-lines span {
+            position: absolute;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            border-radius: 999px;
+            background: currentColor;
+            transition: transform 220ms ease, top 220ms ease, opacity 180ms ease;
+        }
+
+        .nav-toggle-lines span:nth-child(1) { top: 0; }
+        .nav-toggle-lines span:nth-child(2) { top: 6px; }
+        .nav-toggle-lines span:nth-child(3) { top: 12px; }
+
+        .topbar.menu-open .nav-toggle-lines span:nth-child(1) {
+            top: 6px;
+            transform: rotate(45deg);
+        }
+
+        .topbar.menu-open .nav-toggle-lines span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .topbar.menu-open .nav-toggle-lines span:nth-child(3) {
+            top: 6px;
+            transform: rotate(-45deg);
+        }
+
         .btn {
             display: inline-flex;
             align-items: center;
@@ -740,10 +801,56 @@
                 align-items: flex-start;
             }
 
+            .topbar-inner {
+                position: relative;
+            }
+
+            .nav-toggle {
+                display: inline-flex;
+                position: absolute;
+                top: 14px;
+                right: 0;
+            }
+
+            .nav-panel {
+                width: 100%;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 14px;
+                padding: 14px;
+                border-radius: 22px;
+                border: 1px solid rgba(148, 163, 184, 0.16);
+                background: rgba(255,255,255,0.86);
+                box-shadow: 0 24px 50px rgba(15, 23, 42, 0.10);
+                overflow: hidden;
+                max-height: 0;
+                opacity: 0;
+                transform: translateY(-10px) scale(0.98);
+                pointer-events: none;
+                transition: max-height 320ms ease, opacity 240ms ease, transform 240ms ease;
+            }
+
+            .topbar.menu-open .nav-panel {
+                max-height: 420px;
+                opacity: 1;
+                transform: translateY(0) scale(1);
+                pointer-events: auto;
+            }
+
             .navlinks {
-                flex-wrap: wrap;
-                gap: 12px;
-                font-size: 14px;
+                width: 100%;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+                font-size: 15px;
+            }
+
+            .actions {
+                width: 100%;
+            }
+
+            .actions .btn {
+                width: 100%;
             }
 
             .hero {
@@ -790,16 +897,26 @@
                 </div>
             </div>
 
-            <nav class="navlinks">
-                <a href="#platform">Platform</a>
-                <a href="#workflow">Workflow</a>
-                <a href="#security">Security</a>
-                <a href="#contact">Contact</a>
-            </nav>
+            <button class="nav-toggle" type="button" aria-label="Toggle navigation" aria-expanded="false" aria-controls="topbar-menu">
+                <span class="nav-toggle-lines" aria-hidden="true">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </span>
+            </button>
 
-            <div class="actions">
-                <a class="btn" href="{{ route('admin.login') }}">Admin login</a>
-                <a class="btn primary" href="#contact">Explore platform</a>
+            <div class="nav-panel" id="topbar-menu">
+                <nav class="navlinks">
+                    <a href="#platform">Platform</a>
+                    <a href="#workflow">Workflow</a>
+                    <a href="#security">Security</a>
+                    <a href="#contact">Contact</a>
+                </nav>
+
+                <div class="actions">
+                    <a class="btn" href="{{ route('admin.login') }}">Admin login</a>
+                    <a class="btn primary" href="#contact">Explore platform</a>
+                </div>
             </div>
         </div>
     </header>
@@ -1135,6 +1252,9 @@
 
 <script>
     (() => {
+        const topbar = document.querySelector('.topbar');
+        const toggle = document.querySelector('.nav-toggle');
+        const menu = document.getElementById('topbar-menu');
         const observer = new IntersectionObserver((entries) => {
             entries.forEach((entry) => {
                 if (entry.isIntersecting) {
@@ -1147,6 +1267,30 @@
         document.querySelectorAll('.reveal').forEach((el) => {
             if (! el.classList.contains('visible')) {
                 observer.observe(el);
+            }
+        });
+
+        const setMenuState = (open) => {
+            topbar.classList.toggle('menu-open', open);
+            toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+        };
+
+        toggle?.addEventListener('click', () => {
+            const isOpen = topbar.classList.contains('menu-open');
+            setMenuState(! isOpen);
+        });
+
+        menu?.querySelectorAll('a').forEach((link) => {
+            link.addEventListener('click', () => {
+                if (window.innerWidth <= 780) {
+                    setMenuState(false);
+                }
+            });
+        });
+
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 780) {
+                setMenuState(false);
             }
         });
     })();
