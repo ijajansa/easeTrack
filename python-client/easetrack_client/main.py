@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 import time
+from dataclasses import replace
 from pathlib import Path
 
 from .activity import ActivityTracker, IMPORT_ERROR
@@ -33,6 +34,8 @@ def main() -> None:
     interval_seconds = config.default_interval_seconds
     activity_interval_seconds = config.activity_report_interval_seconds
     idle_threshold_seconds = config.idle_threshold_seconds
+    timeout_seconds = config.timeout_seconds
+    runtime_config = config
     enabled = True
     next_settings_refresh = 0.0
     next_screenshot_at = time.monotonic()
@@ -53,11 +56,13 @@ def main() -> None:
 
         if now >= next_settings_refresh:
             try:
-                settings = fetch_settings(config)
+                settings = fetch_settings(runtime_config)
                 interval_seconds = int(settings.get("interval", interval_seconds))
                 enabled = bool(settings.get("enabled", True))
                 activity_interval_seconds = int(settings.get("activity_interval_seconds", activity_interval_seconds))
                 idle_threshold_seconds = int(settings.get("idle_threshold_seconds", idle_threshold_seconds))
+                timeout_seconds = int(settings.get("timeout_seconds", timeout_seconds))
+                runtime_config = replace(config, timeout_seconds=timeout_seconds)
             except Exception:
                 pass
             next_settings_refresh = now + 60
@@ -92,7 +97,7 @@ def main() -> None:
                 idle_threshold_seconds,
             )
             try:
-                push_activity(config, working_seconds, idle_seconds, status)
+                push_activity(runtime_config, working_seconds, idle_seconds, status)
             except Exception:
                 logger.exception("Failed to push activity bucket.")
                 return False
@@ -115,13 +120,13 @@ def main() -> None:
         if now >= next_screenshot_at:
             screenshot_path = capture_screenshot(capture_dir)
             try:
-                upload_screenshot(config, screenshot_path)
+                upload_screenshot(runtime_config, screenshot_path)
             except Exception:
                 queue_failed_file(config, screenshot_path)
             next_screenshot_at = now + interval_seconds
 
             try:
-                flush_queue(config)
+                flush_queue(runtime_config)
             except Exception:
                 pass
 

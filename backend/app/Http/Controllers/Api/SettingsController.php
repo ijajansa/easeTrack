@@ -12,18 +12,16 @@ class SettingsController extends Controller
 {
     public function show(Request $request): JsonResponse
     {
-        /** @var Device $device */
-        $device = $request->attributes->get('device');
-        $globalEnabled = (bool) AppSetting::getValue('tracking_enabled', true);
-        $globalInterval = (int) AppSetting::getValue('screenshot_interval_seconds', config('easetrack.default_interval_seconds'));
-
-        $interval = $device->screenshot_interval_seconds ?? $globalInterval;
+        $globalEnabled = AppSetting::booleanValue('tracking_enabled', true);
+        $globalInterval = (int) AppSetting::getValue('default_interval_seconds', config('easetrack.default_interval_seconds'));
 
         return response()->json([
-            'interval' => (int) $interval,
-            'enabled' => $globalEnabled && $device->is_active,
+            'interval' => $globalInterval,
+            'enabled' => $globalEnabled,
+            'default_interval_seconds' => $globalInterval,
             'activity_interval_seconds' => (int) AppSetting::getValue('activity_report_interval_seconds', config('easetrack.activity_report_interval_seconds')),
             'idle_threshold_seconds' => (int) AppSetting::getValue('idle_threshold_seconds', config('easetrack.idle_threshold_seconds')),
+            'timeout_seconds' => (int) AppSetting::getValue('timeout_seconds', config('easetrack.timeout_seconds', 20)),
         ]);
     }
 }

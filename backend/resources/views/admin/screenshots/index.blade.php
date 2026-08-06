@@ -50,19 +50,24 @@
             inset: 0;
             z-index: 1000;
             display: none;
-            place-items: center;
-            padding: 18px;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 8px 18px 18px;
             background: rgba(2, 6, 23, 0.84);
             backdrop-filter: blur(14px);
+            overflow: auto;
         }
 
         .viewer-modal.is-open {
-            display: grid;
+            display: flex;
         }
 
         .viewer-modal__panel {
             width: min(96vw, 1540px);
-            height: min(94vh, 980px);
+            max-height: min(calc(100vh - 16px), 980px);
+            height: auto;
+            flex: 0 0 auto;
+            margin-top: 0;
             display: grid;
             grid-template-rows: auto 1fr;
             overflow: hidden;
@@ -172,7 +177,8 @@
         @media (max-width: 900px) {
             .viewer-modal__panel {
                 width: 100%;
-                height: 100%;
+                height: auto;
+                max-height: calc(100vh - 16px);
                 border-radius: 18px;
             }
 
@@ -333,7 +339,7 @@
                 </div>
             </div>
 
-            <div class="viewer-modal__content">
+            <div class="viewer-modal__content" data-screenshot-modal-content>
                 <div class="viewer-modal__single is-active" data-screenshot-single-view>
                     <img src="" alt="Fullscreen screenshot" data-screenshot-modal-image>
                 </div>
@@ -373,12 +379,20 @@
             const compareLeftMeta = modal.querySelector('[data-screenshot-compare-left-meta]');
             const compareRightMeta = modal.querySelector('[data-screenshot-compare-right-meta]');
             const compareOpen = document.querySelector('[data-screenshot-compare-open]');
+            const content = modal.querySelector('[data-screenshot-modal-content]');
             const compareCards = @json($compareScreenshotsPayload);
 
 
             let currentScale = 1;
 
             function setModalOpen(isOpen) {
+                if (isOpen) {
+                    window.scrollTo(0, 0);
+                    modal.scrollTop = 0;
+                    if (content) {
+                        content.scrollTop = 0;
+                    }
+                }
                 modal.classList.toggle('is-open', isOpen);
                 modal.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
                 document.body.classList.toggle('modal-open', isOpen);

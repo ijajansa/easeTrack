@@ -12,8 +12,8 @@ class DashboardController extends Controller
 {
     public function index(): View
     {
-        $globalEnabled = (bool) AppSetting::getValue('tracking_enabled', true);
-        $globalInterval = (int) AppSetting::getValue('screenshot_interval_seconds', config('easetrack.default_interval_seconds'));
+        $globalEnabled = AppSetting::booleanValue('tracking_enabled', true);
+        $globalInterval = (int) AppSetting::getValue('default_interval_seconds', config('easetrack.default_interval_seconds'));
         $devicesForKpis = Device::query()
             ->withMax('screenshots', 'created_at')
             ->get();

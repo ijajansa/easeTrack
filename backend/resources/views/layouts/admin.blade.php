@@ -573,6 +573,10 @@
                 <span>Screenshots</span>
                 <span>03</span>
             </a>
+            <a href="{{ route('admin.settings.index') }}" class="{{ request()->routeIs('admin.settings.*') ? 'active' : '' }}">
+                <span>Settings</span>
+                <span>04</span>
+            </a>
             <form action="{{ route('admin.logout') }}" method="POST" style="margin:0;">
                 @csrf
                 <button type="submit" class="logout">
