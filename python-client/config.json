@@ -6,6 +6,6 @@
   "queue_folder": "queue",
   "default_interval_seconds": 10,
   "activity_report_interval_seconds": 60,
-  "idle_threshold_seconds": 10,
+  "idle_threshold_seconds": 30,
   "timeout_seconds": 20
 }

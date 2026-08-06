@@ -16,6 +16,7 @@ class EmployeeController extends Controller
     {
         $employees = $this->employeeQuery($request)
             ->withCount('screenshots')
+            ->withMax('screenshots', 'created_at')
             ->orderBy('employee_name')
             ->paginate(20)
             ->withQueryString();
@@ -45,11 +46,11 @@ class EmployeeController extends Controller
         return view('admin.employees.show', [
             'pageTitle' => $device->employee_name,
             'pageSubtitle' => 'Employee profile, live status, screenshot history, and activity charts.',
-            'device' => $device->loadCount('screenshots'),
+            'device' => $device->loadCount('screenshots')->loadMax('screenshots', 'created_at'),
             'screenshots' => Screenshot::query()
                 ->where('device_id', $device->id)
                 ->latest()
-                ->paginate(12, ['*'], 'screenshots_page')
+                ->paginate(10, ['*'], 'screenshots_page')
                 ->withQueryString(),
             'activityLogs' => $activityLogs,
             'activitySeries' => [
@@ -88,6 +89,7 @@ class EmployeeController extends Controller
 
             $this->employeeQuery($request)
                 ->withCount('screenshots')
+                ->withMax('screenshots', 'created_at')
                 ->orderBy('employee_name')
                 ->chunk(100, function ($employees) use ($handle): void {
                     foreach ($employees as $employee) {

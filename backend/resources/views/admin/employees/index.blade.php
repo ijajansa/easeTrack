@@ -74,26 +74,46 @@
                         </td>
                         <td>
                             <span style="font-weight:800; color: {{ $employee->working_status_color }};">
-                                {{ number_format($employee->working_hours, 2) }} hrs
+                                {{ $employee->working_duration_label }}
                             </span>
-                            <div class="muted">{{ $employee->working_status_label }}</div>
+                            <div class="muted">{{ number_format($employee->working_hours, 2) }} hrs &middot; {{ $employee->working_status_label }}</div>
                         </td>
                         <td>
                             <span style="font-weight:800; color: {{ $employee->idle_status_color }};">
-                                {{ number_format($employee->idle_hours, 2) }} hrs
+                                {{ $employee->idle_duration_label }}
                             </span>
-                            <div class="muted">{{ $employee->idle_status_label }}</div>
+                            <div class="muted">{{ number_format($employee->idle_hours, 2) }} hrs &middot; {{ $employee->idle_status_label }}</div>
                         </td>
                         <td>
-                            <span
-                                class="status-pill {{ $employee->last_seen_state }}"
-                                data-live-last-seen
-                                data-last-ping-at="{{ optional($employee->last_ping_at)->toIso8601String() }}"
-                                data-state="{{ $employee->last_seen_state }}"
-                            >
-                                <span class="live-dot {{ $employee->last_seen_state }}" data-live-dot></span>
-                                <span data-live-label>{{ $employee->last_seen_label }}</span>
-                            </span>
+                            <div style="display:flex; flex-direction:column; gap:6px;">
+                                <span
+                                    class="status-pill {{ $employee->last_seen_state }}"
+                                    data-live-last-seen
+                                    data-last-ping-at="{{ optional($employee->last_ping_at)->toIso8601String() }}"
+                                    data-state="{{ $employee->last_seen_state }}"
+                                >
+                                    <span class="live-dot {{ $employee->last_seen_state }}" data-live-dot></span>
+                                    <span data-live-label>{{ $employee->last_seen_label }}</span>
+                                </span>
+                                <span
+                                    class="badge"
+                                    style="background: {{
+                                        $employee->tracking_health_state === 'success'
+                                            ? 'rgba(22,163,74,0.12)'
+                                            : ($employee->tracking_health_state === 'warning'
+                                                ? 'rgba(217,119,6,0.12)'
+                                                : 'rgba(220,38,38,0.12)')
+                                    }}; color: {{
+                                        $employee->tracking_health_state === 'success'
+                                            ? '#15803d'
+                                            : ($employee->tracking_health_state === 'warning'
+                                                ? '#b45309'
+                                                : '#b91c1c')
+                                    }}; width: fit-content;">
+                                    {{ $employee->tracking_health_label }}
+                                </span>
+                                <span class="muted" style="font-size:12px;">Screenshot: {{ $employee->last_screenshot_label }}</span>
+                            </div>
                         </td>
                         <td>{{ $employee->screenshots_count }}</td>
                         <td>

@@ -1,11 +1,14 @@
 from __future__ import annotations
 
+import logging
 import shutil
 from pathlib import Path
 
 import requests
 
 from .config import ClientConfig
+
+logger = logging.getLogger(__name__)
 
 
 def _headers(config: ClientConfig) -> dict[str, str]:
@@ -26,6 +29,14 @@ def fetch_settings(config: ClientConfig) -> dict:
 
 
 def push_activity(config: ClientConfig, working_seconds: int, idle_seconds: int, status: str) -> bool:
+    if idle_seconds > 0 or status == "idle":
+        logger.info(
+            "Sending activity payload to API: status=%s working_seconds=%s idle_seconds=%s",
+            status,
+            working_seconds,
+            idle_seconds,
+        )
+
     response = requests.post(
         f"{config.server_url}/api/activity",
         headers={**_headers(config), "Content-Type": "application/json"},
@@ -37,6 +48,8 @@ def push_activity(config: ClientConfig, working_seconds: int, idle_seconds: int,
         timeout=config.timeout_seconds,
     )
     response.raise_for_status()
+    if idle_seconds > 0 or status == "idle":
+        logger.info("Idle activity payload sent successfully.")
     return True
 
 

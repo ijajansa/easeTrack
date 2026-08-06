@@ -6,7 +6,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>SnapTrack Admin Login</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="icon" href="{{ asset('assets/img/snaptrack.png') }}" type="image/png">
+    <link rel="icon" href="{{ asset('assets/img/icon.png') }}" type="image/png">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
     <style>
@@ -70,8 +70,10 @@
             padding: 42px;
             color: white;
             background:
+                linear-gradient(180deg, rgba(15,23,42,0.78), rgba(15,23,42,0.40));
+            /* background:
                 linear-gradient(180deg, rgba(15,23,42,0.78), rgba(15,23,42,0.40)),
-                url('{{ asset('assets/img/snaptrack.png') }}') center/cover no-repeat;
+                url('{{ asset('assets/img/icon.png') }}') center/cover no-repeat; */
             position: relative;
             min-height: 620px;
             display: flex;
@@ -278,7 +280,7 @@
         <section class="login-brand">
             <div class="brand-content">
                 <div class="logo-wrap">
-                    <img src="{{ asset('assets/img/snaptrack.png') }}" alt="SnapTrack logo">
+                    <img src="{{ asset('assets/img/icon.png') }}" alt="SnapTrack logo">
                     <div>
                         <div class="brand-chip">Secure Workforce Intelligence</div>
                         <h1>SnapTrack Admin</h1>
@@ -323,7 +325,7 @@
         <section class="login-panel">
             <div class="login-card">
                 <div class="logo-wrap" style="margin-bottom: 18px;">
-                    <img src="{{ asset('assets/img/snaptrack.png') }}" alt="SnapTrack logo">
+                    <img src="{{ asset('assets/img/icon.png') }}" alt="SnapTrack logo">
                     <div>
                         <div class="brand-chip" style="background: rgba(37,99,235,0.10); color: #1d4ed8; border-color: rgba(37,99,235,0.12);">Welcome back</div>
                         <h2>Sign in to continue</h2>

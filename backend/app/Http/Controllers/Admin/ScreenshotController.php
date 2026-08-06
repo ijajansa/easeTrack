@@ -24,10 +24,22 @@ class ScreenshotController extends Controller
             $query->whereDate('created_at', $request->date('date'));
         }
 
+        $compareScreenshots = (clone $query)
+            ->limit(2)
+            ->get();
+
         return view('admin.screenshots.index', [
             'pageTitle' => 'Screenshot Vault',
             'pageSubtitle' => 'Filter screenshots by employee, inspect previews, and move through history quickly.',
-            'screenshots' => $query->paginate(20)->withQueryString(),
+            'screenshots' => $query->paginate(10)->withQueryString(),
+            'compareScreenshots' => $compareScreenshots,
+            'compareScreenshotsPayload' => $compareScreenshots->map(function (Screenshot $screenshot): array {
+                return [
+                    'url' => asset('storage/' . $screenshot->image_path),
+                    'title' => $screenshot->device?->employee_name ?? 'Unknown',
+                    'meta' => $screenshot->created_at->format('M d, Y h:i A') . ' · ' . ($screenshot->device?->device_id ?? 'Unknown device'),
+                ];
+            })->values(),
             'devices' => Device::query()->orderBy('employee_name')->get(),
         ]);
     }

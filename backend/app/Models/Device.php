@@ -110,4 +110,146 @@ class Device extends Model
 
         return $this->last_ping_at->diffInMinutes(now()) <= 2 ? 'online' : 'away';
     }
+
+    public function getTrackingHealthStateAttribute(): string
+    {
+        if (! $this->last_ping_at instanceof Carbon) {
+            return 'danger';
+        }
+
+        if ($this->last_ping_at->diffInMinutes(now()) > 5) {
+            return 'danger';
+        }
+
+        return match ($this->screenshotHealthState()) {
+            'danger' => 'danger',
+            'warning' => 'warning',
+            default => $this->last_ping_at->diffInMinutes(now()) <= 2 ? 'success' : 'warning',
+        };
+    }
+
+    public function getLastScreenshotAtAttribute(): ?Carbon
+    {
+        $value = $this->attributes['screenshots_max_created_at'] ?? null;
+
+        if (! $value) {
+            return null;
+        }
+
+        return $value instanceof Carbon ? $value : Carbon::parse($value);
+    }
+
+    public function getLastScreenshotLabelAttribute(): string
+    {
+        if (! $this->last_screenshot_at instanceof Carbon) {
+            return 'No screenshots yet';
+        }
+
+        $diff = $this->last_screenshot_at->diffInSeconds(now());
+
+        if ($diff < 60) {
+            return $diff . 's ago';
+        }
+
+        if ($diff < 3600) {
+            return max(1, (int) floor($diff / 60)) . 'm ago';
+        }
+
+        return max(1, (int) floor($diff / 3600)) . 'h ago';
+    }
+
+    public function getTrackingHealthLabelAttribute(): string
+    {
+        return match ($this->tracking_health_state) {
+            'success' => 'Tracker healthy',
+            'warning' => 'Tracker delayed',
+            default => 'Tracker not responding',
+        };
+    }
+
+    public function getTrackingHealthDetailAttribute(): string
+    {
+        if (! $this->last_ping_at instanceof Carbon) {
+            return 'No activity ping received yet, so the device may be offline or the client may not have started.';
+        }
+
+        $minutesSincePing = $this->last_ping_at->diffInMinutes(now());
+        $lastScreenshotAt = $this->last_screenshot_at;
+
+        if ($minutesSincePing > 5) {
+            return 'No activity ping for ' . $minutesSincePing . ' minute(s). The client may have stopped responding.';
+        }
+
+        if ($this->screenshotHealthState() === 'danger') {
+            return 'Activity pings are still coming in, but screenshots have stopped updating. The capture process may be broken.';
+        }
+
+        if ($this->screenshotHealthState() === 'warning') {
+            return 'Activity pings are live, but screenshots are behind the expected interval.';
+        }
+
+        if ($minutesSincePing <= 2) {
+            return 'Last ping and screenshots are recent. Tracking is healthy.';
+        }
+
+        return 'Tracking is active, but the last ping is slightly delayed.';
+    }
+
+    private function screenshotHealthState(): string
+    {
+        if (! $this->last_ping_at instanceof Carbon) {
+            return 'danger';
+        }
+
+        $intervalSeconds = max(
+            1,
+            (int) ($this->screenshot_interval_seconds ?? config('easetrack.default_interval_seconds', 300))
+        );
+
+        $warningThreshold = max($intervalSeconds * 6, 120);
+        $dangerThreshold = max($intervalSeconds * 12, 300);
+
+        if (! $this->last_screenshot_at instanceof Carbon) {
+            return $this->last_ping_at->diffInMinutes(now()) > 2 ? 'warning' : 'warning';
+        }
+
+        $secondsSinceScreenshot = $this->last_screenshot_at->diffInSeconds(now());
+
+        if ($secondsSinceScreenshot >= $dangerThreshold) {
+            return 'danger';
+        }
+
+        if ($secondsSinceScreenshot >= $warningThreshold) {
+            return 'warning';
+        }
+
+        return 'success';
+    }
+
+    public function getWorkingDurationLabelAttribute(): string
+    {
+        return $this->formatDuration($this->working_seconds);
+    }
+
+    public function getIdleDurationLabelAttribute(): string
+    {
+        return $this->formatDuration($this->idle_seconds);
+    }
+
+    private function formatDuration(int $seconds): string
+    {
+        $hours = intdiv($seconds, 3600);
+        $minutes = intdiv($seconds % 3600, 60);
+        $remainingSeconds = $seconds % 60;
+
+        if ($hours > 0) {
+            return sprintf('%02dh %02dm %02ds', $hours, $minutes, $remainingSeconds);
+        }
+
+        if ($minutes > 0) {
+            return sprintf('%02dm %02ds', $minutes, $remainingSeconds);
+        }
+
+        return sprintf('%02ds', $remainingSeconds);
+    }
 }

@@ -17,12 +17,39 @@
                 <span class="badge" style="background: rgba(255,255,255,0.16); color: white;">{{ $device->screenshots_count }} screenshots</span>
             </div>
 
+            <div
+                class="badge"
+                style="display:inline-flex; align-items:center; gap:8px; margin-bottom:12px; padding:10px 14px; border-radius:999px; background: {{
+                    $device->tracking_health_state === 'success'
+                        ? 'rgba(22,163,74,0.18)'
+                        : ($device->tracking_health_state === 'warning'
+                            ? 'rgba(217,119,6,0.18)'
+                            : 'rgba(220,38,38,0.18)')
+                }}; color: {{
+                    $device->tracking_health_state === 'success'
+                        ? '#d1fae5'
+                        : ($device->tracking_health_state === 'warning'
+                            ? '#fef3c7'
+                            : '#fee2e2')
+                }};">
+                <span style="width:10px; height:10px; border-radius:999px; background: {{
+                    $device->tracking_health_state === 'success'
+                        ? '#22c55e'
+                        : ($device->tracking_health_state === 'warning'
+                            ? '#f59e0b'
+                            : '#ef4444')
+                }};"></span>
+                {{ $device->tracking_health_label }}
+            </div>
+
             <h2>{{ $device->employee_name }}</h2>
             <p>
                 Device ID: <strong>{{ $device->device_id }}</strong>
                 - Current state: {{ ucfirst($device->current_status ?? $device->status) }}
                 - Last activity: {{ optional($device->last_activity_at)->format('M d, Y h:i A') ?? 'Never' }}
             </p>
+            <p class="muted">{{ $device->tracking_health_detail }}</p>
+            <p class="muted">Last screenshot: <strong>{{ $device->last_screenshot_label }}</strong></p>
 
             <div class="actions" style="margin-top:18px;">
                 <a class="ghost" href="{{ route('admin.employees.index') }}">Back to employees</a>
@@ -33,13 +60,13 @@
         <div class="hero-side">
             <div class="mini-stat">
                 <div class="muted">Working hours</div>
-                <strong style="color: {{ $device->working_status_color }};">{{ number_format($device->working_hours, 2) }}</strong>
-                <div class="muted">{{ $device->working_status_label }}</div>
+                <strong style="color: {{ $device->working_status_color }};">{{ $device->working_duration_label }}</strong>
+                <div class="muted">{{ number_format($device->working_hours, 2) }} hrs &middot; {{ $device->working_status_label }}</div>
             </div>
             <div class="mini-stat">
                 <div class="muted">Idle hours</div>
-                <strong style="color: {{ $device->idle_status_color }};">{{ number_format($device->idle_hours, 2) }}</strong>
-                <div class="muted">{{ $device->idle_status_label }}</div>
+                <strong style="color: {{ $device->idle_status_color }};">{{ $device->idle_duration_label }}</strong>
+                <div class="muted">{{ number_format($device->idle_hours, 2) }} hrs &middot; {{ $device->idle_status_label }}</div>
             </div>
         </div>
     </div>
@@ -47,11 +74,13 @@
     <div class="grid stats" style="margin-bottom:18px;">
         <div class="card soft">
             <div class="muted">Working</div>
-            <h2 style="color: {{ $device->working_status_color }};">{{ number_format($device->working_hours, 2) }} hrs</h2>
+            <h2 style="color: {{ $device->working_status_color }};">{{ $device->working_duration_label }}</h2>
+            <div class="muted">{{ number_format($device->working_hours, 2) }} hrs &middot; {{ $device->working_duration_label }}</div>
         </div>
         <div class="card soft">
             <div class="muted">Idle</div>
-            <h2 style="color: {{ $device->idle_status_color }};">{{ number_format($device->idle_hours, 2) }} hrs</h2>
+            <h2 style="color: {{ $device->idle_status_color }};">{{ $device->idle_duration_label }}</h2>
+            <div class="muted">{{ number_format($device->idle_hours, 2) }} hrs &middot; {{ $device->idle_duration_label }}</div>
         </div>
         <div class="card soft">
             <div class="muted">Screenshots</div>
@@ -60,6 +89,11 @@
         <div class="card soft">
             <div class="muted">Current status</div>
             <h2>{{ ucfirst($device->current_status ?? $device->status) }}</h2>
+        </div>
+        <div class="card soft">
+            <div class="muted">Last screenshot</div>
+            <h2>{{ $device->last_screenshot_label }}</h2>
+            <div class="muted">{{ $device->tracking_health_detail }}</div>
         </div>
     </div>
 

@@ -51,6 +51,38 @@
         </div>
     </div>
 
+    <div class="section-title" style="margin-top:18px;">
+        <h3>Health KPIs</h3>
+        <span class="badge">Live system pulse</span>
+    </div>
+    <div class="grid stats">
+        <div class="card soft">
+            <div class="muted">Devices healthy</div>
+            <h2 style="color:#15803d;">{{ $widgetDevicesHealthy }}</h2>
+            <div class="muted">Tracker and screenshots are current</div>
+        </div>
+        <div class="card soft">
+            <div class="muted">Devices delayed</div>
+            <h2 style="color:#b45309;">{{ $widgetDevicesDelayed }}</h2>
+            <div class="muted">Ping or screenshot flow is lagging</div>
+        </div>
+        <div class="card soft">
+            <div class="muted">Devices offline</div>
+            <h2 style="color:#b91c1c;">{{ $widgetDevicesOffline }}</h2>
+            <div class="muted">No recent response from the client</div>
+        </div>
+        <div class="card soft">
+            <div class="muted">Employees under target</div>
+            <h2 style="color:#b91c1c;">{{ $widgetEmployeesUnderTarget }}</h2>
+            <div class="muted">Working time is below 8 hours</div>
+        </div>
+        <div class="card soft">
+            <div class="muted">Employees with excessive idle</div>
+            <h2 style="color:#b91c1c;">{{ $widgetEmployeesExcessiveIdle }}</h2>
+            <div class="muted">Idle time is 2 hours or more</div>
+        </div>
+    </div>
+
     <div class="grid" style="grid-template-columns: 1.25fr 1fr; margin-top: 18px;">
         <section class="card soft">
             <div class="section-title">
@@ -115,24 +147,46 @@
                         </td>
                         <td>
                             <span style="font-weight:800; color: {{ $employee->working_status_color }};">
-                                {{ number_format($employee->working_hours, 2) }} hrs
+                                {{ $employee->working_duration_label }}
                             </span>
+                            <div class="muted">{{ number_format($employee->working_hours, 2) }} hrs &middot; {{ $employee->working_status_label }}</div>
                         </td>
                         <td>
                             <span style="font-weight:800; color: {{ $employee->idle_status_color }};">
-                                {{ number_format($employee->idle_hours, 2) }} hrs
+                                {{ $employee->idle_duration_label }}
                             </span>
+                            <div class="muted">{{ number_format($employee->idle_hours, 2) }} hrs &middot; {{ $employee->idle_status_label }}</div>
                         </td>
                         <td>
-                            <span
-                                class="status-pill {{ $employee->last_seen_state }}"
-                                data-live-last-seen
-                                data-last-ping-at="{{ optional($employee->last_ping_at)->toIso8601String() }}"
-                                data-state="{{ $employee->last_seen_state }}"
-                            >
-                                <span class="live-dot {{ $employee->last_seen_state }}" data-live-dot></span>
-                                <span data-live-label>{{ $employee->last_seen_label }}</span>
-                            </span>
+                            <div style="display:flex; flex-direction:column; gap:6px;">
+                                <span
+                                    class="status-pill {{ $employee->last_seen_state }}"
+                                    data-live-last-seen
+                                    data-last-ping-at="{{ optional($employee->last_ping_at)->toIso8601String() }}"
+                                    data-state="{{ $employee->last_seen_state }}"
+                                >
+                                    <span class="live-dot {{ $employee->last_seen_state }}" data-live-dot></span>
+                                    <span data-live-label>{{ $employee->last_seen_label }}</span>
+                                </span>
+                                <span
+                                    class="badge"
+                                    style="background: {{
+                                        $employee->tracking_health_state === 'success'
+                                            ? 'rgba(22,163,74,0.12)'
+                                            : ($employee->tracking_health_state === 'warning'
+                                                ? 'rgba(217,119,6,0.12)'
+                                                : 'rgba(220,38,38,0.12)')
+                                    }}; color: {{
+                                        $employee->tracking_health_state === 'success'
+                                            ? '#15803d'
+                                            : ($employee->tracking_health_state === 'warning'
+                                                ? '#b45309'
+                                                : '#b91c1c')
+                                    }}; width: fit-content;">
+                                    {{ $employee->tracking_health_label }}
+                                </span>
+                                <span class="muted" style="font-size:12px;">Screenshot: {{ $employee->last_screenshot_label }}</span>
+                            </div>
                         </td>
                         <td><a class="btn" href="{{ route('admin.employees.show', $employee) }}">Open</a></td>
                     </tr>
