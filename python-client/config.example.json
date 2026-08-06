@@ -1,0 +1,11 @@
+{
+  "device_id": "device-001",
+  "api_token": "change-me",
+  "server_url": "https://your-domain.com",
+  "capture_folder": "captures",
+  "queue_folder": "queue",
+  "default_interval_seconds": 300,
+  "activity_report_interval_seconds": 60,
+  "idle_threshold_seconds": 10,
+  "timeout_seconds": 20
+}
