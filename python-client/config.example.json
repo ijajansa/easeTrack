@@ -1,4 +1,5 @@
 {
+  "full_name": "John Doe",
   "device_id": "device-001",
   "api_token": "change-me",
   "server_url": "https://your-domain.com",

@@ -47,7 +47,7 @@ def get_activity_status(idle_threshold_seconds: int) -> tuple[str, float]:
 @dataclass
 class ActivityTracker:
     idle_threshold_seconds: int
-    sleep_gap_seconds: int = 120
+    sleep_gap_seconds: int = 45
     working_seconds: float = 0.0
     idle_seconds: float = 0.0
     last_tick: float = field(default_factory=time.monotonic)
@@ -93,6 +93,7 @@ class ActivityTracker:
 
         resumed_from_sleep = elapsed >= self.sleep_gap_seconds
         if resumed_from_sleep:
+            # Do not charge suspended laptop time to either working or idle.
             with self._lock:
                 self.last_input_at = now
             self.last_tick = now

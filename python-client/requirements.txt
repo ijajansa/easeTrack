@@ -2,3 +2,4 @@ pyautogui
 requests
 pillow
 pynput
+pystray

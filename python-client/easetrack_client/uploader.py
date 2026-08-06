@@ -6,13 +6,14 @@ from pathlib import Path
 
 import requests
 
-from .config import ClientConfig
+from easetrack_client.config import ClientConfig
 
 logger = logging.getLogger(__name__)
 
 
 def _headers(config: ClientConfig) -> dict[str, str]:
     return {
+        "X-Employee-Name": config.full_name,
         "X-Device-Id": config.device_id,
         "X-Api-Token": config.api_token,
     }
@@ -54,8 +55,9 @@ def push_activity(config: ClientConfig, working_seconds: int, idle_seconds: int,
 
 
 def upload_screenshot(config: ClientConfig, file_path: Path) -> bool:
+    mime_type = "image/jpeg" if file_path.suffix.lower() in {".jpg", ".jpeg"} else "image/png"
     with file_path.open("rb") as handle:
-        files = {"file": (file_path.name, handle, "image/png")}
+        files = {"file": (file_path.name, handle, mime_type)}
         response = requests.post(
             f"{config.server_url}/api/upload",
             headers=_headers(config),
