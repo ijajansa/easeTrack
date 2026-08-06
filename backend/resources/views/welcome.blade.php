@@ -817,7 +817,7 @@
                 flex-direction: column;
                 align-items: stretch;
                 gap: 14px;
-                padding: 14px;
+                padding: 2px;
                 border-radius: 22px;
                 border: 1px solid rgba(148, 163, 184, 0.16);
                 background: rgba(255,255,255,0.86);
@@ -841,7 +841,9 @@
                 width: 100%;
                 flex-direction: column;
                 align-items: flex-start;
-                gap: 10px;
+                gap: 15px;
+                padding:10px;
+
                 font-size: 15px;
             }
 

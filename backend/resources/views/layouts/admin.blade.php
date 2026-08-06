@@ -71,6 +71,17 @@
             padding: 24px;
         }
 
+        .shell-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 18;
+            display: none;
+            background: rgba(2, 6, 23, 0.52);
+            backdrop-filter: blur(6px);
+            opacity: 0;
+            transition: opacity 220ms ease;
+        }
+
         .sidebar {
             position: sticky;
             top: 24px;
@@ -81,6 +92,19 @@
             background: linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255,255,255,0.70));
             backdrop-filter: blur(16px);
             box-shadow: var(--shadow);
+        }
+
+        .sidebar__close {
+            display: none;
+            margin-left: auto;
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            border: 1px solid rgba(148, 163, 184, 0.22);
+            background: rgba(255,255,255,0.86);
+            color: #0f172a;
+            font-size: 20px;
+            cursor: pointer;
         }
 
         .brand {
@@ -189,6 +213,73 @@
             backdrop-filter: blur(18px);
             box-shadow: var(--shadow);
             overflow: hidden;
+        }
+
+        .mobile-topbar {
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            margin-bottom: 14px;
+        }
+
+        .mobile-topbar__left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 0;
+        }
+
+        .mobile-menu-toggle {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 46px;
+            height: 46px;
+            border-radius: 14px;
+            border: 1px solid rgba(148, 163, 184, 0.22);
+            background: rgba(255,255,255,0.90);
+            color: #0f172a;
+            box-shadow: 0 14px 28px rgba(15, 23, 42, 0.08);
+            cursor: pointer;
+        }
+
+        .mobile-menu-toggle span {
+            display: block;
+            width: 18px;
+            height: 2px;
+            background: currentColor;
+            border-radius: 999px;
+            position: relative;
+        }
+
+        .mobile-menu-toggle span::before,
+        .mobile-menu-toggle span::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            width: 18px;
+            height: 2px;
+            background: currentColor;
+            border-radius: 999px;
+            transition: transform 220ms ease, top 220ms ease, opacity 180ms ease;
+        }
+
+        .mobile-menu-toggle span::before { top: -6px; }
+        .mobile-menu-toggle span::after { top: 6px; }
+
+        .app-shell.sidebar-open .mobile-menu-toggle span {
+            background: transparent;
+        }
+
+        .app-shell.sidebar-open .mobile-menu-toggle span::before {
+            top: 0;
+            transform: rotate(45deg);
+        }
+
+        .app-shell.sidebar-open .mobile-menu-toggle span::after {
+            top: 0;
+            transform: rotate(-45deg);
         }
 
         .page-header {
@@ -300,6 +391,7 @@
             border-collapse: separate;
             border-spacing: 0;
             overflow: hidden;
+            min-width: 820px;
         }
 
         .table th, .table td {
@@ -517,9 +609,38 @@
                 grid-template-columns: 1fr;
             }
 
+            .mobile-topbar {
+                display: flex;
+            }
+
+            .mobile-menu-toggle {
+                display: inline-flex;
+            }
+
             .sidebar {
-                position: relative;
-                top: auto;
+                position: fixed;
+                top: 14px;
+                left: 14px;
+                z-index: 30;
+                width: min(320px, calc(100vw - 28px));
+                max-height: calc(100vh - 28px);
+                overflow: auto;
+                transform: translateX(-112%);
+                transition: transform 260ms ease;
+            }
+
+            .shell-overlay {
+                display: block;
+                pointer-events: none;
+            }
+
+            .app-shell.sidebar-open .sidebar {
+                transform: translateX(0);
+            }
+
+            .app-shell.sidebar-open .shell-overlay {
+                pointer-events: auto;
+                opacity: 1;
             }
 
             .hero {
@@ -533,31 +654,86 @@
                 gap: 14px;
             }
 
+            .sidebar {
+                top: 10px;
+                left: 10px;
+                width: calc(100vw - 20px);
+                padding: 16px;
+                border-radius: 24px;
+            }
+
+            .sidebar__close {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+            }
+
             .page-header, .actions {
                 flex-direction: column;
                 align-items: flex-start;
+            }
+
+            .page-header {
+                padding: 18px 18px 16px;
+            }
+
+            .content {
+                padding: 16px;
+            }
+
+            .card {
+                padding: 16px;
+                border-radius: 20px;
             }
 
             .hero-main h2 {
                 font-size: 28px;
             }
 
+            .page-wrap {
+                border-radius: 22px;
+            }
+
             .table {
                 display: block;
                 overflow-x: auto;
+                min-width: 680px;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .compact-pagination {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .compact-pagination__summary {
+                white-space: normal;
+            }
+
+            .compact-pagination__nav {
+                gap: 5px;
+            }
+
+            .compact-pagination__item,
+            .compact-pagination__ellipsis {
+                min-width: 30px;
+                height: 30px;
+                padding: 0 8px;
             }
         }
     </style>
 </head>
 <body>
+<div class="shell-overlay" data-sidebar-overlay></div>
 <div class="app-shell">
-    <aside class="sidebar">
-        <div class="brand">
+    <aside class="sidebar" id="admin-sidebar">
+        <div class="brand" style="margin-bottom: 18px;">
             <img class="brand-logo" src="{{ asset('assets/img/icon.png') }}" alt="SnapTrack logo">
-            <div>
+            <div style="min-width:0;">
                 <h1>SnapTrack</h1>
                 <p>Workforce intelligence console</p>
             </div>
+            <button class="sidebar__close" type="button" aria-label="Close navigation" data-sidebar-close>&times;</button>
         </div>
 
         <nav class="nav">
@@ -594,6 +770,19 @@
     </aside>
 
     <main class="workspace">
+        <div class="mobile-topbar">
+            <div class="mobile-topbar__left">
+                <button class="mobile-menu-toggle" type="button" aria-label="Open navigation" aria-expanded="false" aria-controls="admin-sidebar" data-sidebar-toggle>
+                    <span aria-hidden="true"></span>
+                </button>
+                <div>
+                    <div style="font-family:'Space Grotesk', sans-serif; font-size: 18px; font-weight: 700; letter-spacing: -0.03em;">{{ $pageTitle ?? 'Admin Workspace' }}</div>
+                    <div class="muted" style="font-size: 13px;">{{ $pageSubtitle ?? 'Monitor employees, devices, screenshots, and activity at a glance.' }}</div>
+                </div>
+            </div>
+            <span class="badge">{{ now()->format('M d') }}</span>
+        </div>
+
         <div class="page-wrap">
             <div class="page-header">
                 <div>
@@ -649,6 +838,42 @@
 
     refreshLiveBadges();
     setInterval(refreshLiveBadges, 5000);
+
+    (() => {
+        const shell = document.querySelector('.app-shell');
+        const sidebar = document.querySelector('.sidebar');
+        const overlay = document.querySelector('[data-sidebar-overlay]');
+        const openBtn = document.querySelector('[data-sidebar-toggle]');
+        const closeBtn = document.querySelector('[data-sidebar-close]');
+        if (!shell || !sidebar || !openBtn || !overlay) return;
+
+        const setOpen = (open) => {
+            shell.classList.toggle('sidebar-open', open);
+            openBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+            document.body.style.overflow = open && window.innerWidth <= 1100 ? 'hidden' : '';
+        };
+
+        openBtn.addEventListener('click', () => {
+            setOpen(!shell.classList.contains('sidebar-open'));
+        });
+
+        closeBtn?.addEventListener('click', () => setOpen(false));
+        overlay.addEventListener('click', () => setOpen(false));
+
+        sidebar.querySelectorAll('a, button[type="submit"]').forEach((item) => {
+            item.addEventListener('click', () => {
+                if (window.innerWidth <= 1100) {
+                    setOpen(false);
+                }
+            });
+        });
+
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 1100) {
+                setOpen(false);
+            }
+        });
+    })();
 </script>
 
 @stack('scripts')
