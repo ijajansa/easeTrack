@@ -29,6 +29,10 @@ def main() -> None:
         return
 
     config = ensure_config(force_setup=args.setup)
+    if config is None:
+        print("SnapTrack setup cancelled.")
+        sys.exit(2)
+
     capture_dir = Path(config.capture_folder)
     queue_dir = Path(config.queue_folder)
     log_dir = Path("logs")
@@ -207,6 +211,7 @@ def uninstall_client() -> None:
     data_dir = default_data_dir()
     remove_local_data()
     logger.info("Removed local SnapTrack data: %s", data_dir)
+    _show_toast("SnapTrack removed", "SnapTrack was uninstalled successfully.")
 
     if is_packaged():
         exe_path = Path(sys.executable)
@@ -219,6 +224,53 @@ def uninstall_client() -> None:
         logger.info("Scheduled EXE removal: %s", exe_path)
     else:
         logger.info("Source-mode uninstall finished. Delete the project folder if desired.")
+
+
+def _show_toast(title: str, message: str) -> None:
+    try:
+        import tkinter as tk
+    except Exception:
+        return
+
+    try:
+        root = tk.Tk()
+        root.overrideredirect(True)
+        root.attributes("-topmost", True)
+        root.configure(bg="#ffffff")
+
+        width, height = 360, 120
+        screen_w = root.winfo_screenwidth()
+        x = screen_w - width - 24
+        y = 24
+        root.geometry(f"{width}x{height}+{x}+{y}")
+
+        border = tk.Frame(root, bg="#22c55e", bd=0)
+        border.pack(fill="both", expand=True)
+        card = tk.Frame(border, bg="#ffffff", padx=16, pady=14)
+        card.pack(fill="both", expand=True, padx=4, pady=4)
+
+        tk.Label(
+            card,
+            text=title,
+            font=("Segoe UI", 12, "bold"),
+            bg="#ffffff",
+            fg="#0f172a",
+            anchor="w",
+        ).pack(fill="x")
+        tk.Label(
+            card,
+            text=message,
+            font=("Segoe UI", 10),
+            bg="#ffffff",
+            fg="#475569",
+            justify="left",
+            wraplength=320,
+        ).pack(fill="x", pady=(8, 0))
+
+        root.after(2200, root.destroy)
+        root.mainloop()
+    except Exception:
+        pass
 
 
 if __name__ == "__main__":

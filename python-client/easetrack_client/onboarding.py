@@ -8,6 +8,9 @@ from typing import Any
 from easetrack_client.config import ClientConfig, default_config_path, load_config, save_config
 
 
+_SETUP_CANCELLED = object()
+
+
 def _repo_root() -> Path:
     return Path(__file__).resolve().parents[1]
 
@@ -36,15 +39,20 @@ def ensure_config(path: str | Path | None = None, force_setup: bool = False) -> 
     if not force_setup and config_path.exists():
         return load_config(config_path)
 
-    data = _prompt_with_gui()
+    data = _prompt_with_gui(config_path)
+    if data is _SETUP_CANCELLED:
+        return None
+
     if data is None:
         data = _prompt_with_console()
+        save_config(data, config_path)
+    else:
+        return load_config(config_path)
 
-    save_config(data, config_path)
     return load_config(config_path)
 
 
-def _prompt_with_gui() -> dict[str, Any] | None:
+def _prompt_with_gui(config_path: Path) -> dict[str, Any] | None:
     try:
         import tkinter as tk
         from tkinter import ttk
@@ -52,13 +60,17 @@ def _prompt_with_gui() -> dict[str, Any] | None:
         return None
 
     result: dict[str, Any] = {}
+    cancelled = {"value": False}
+    toast_window: tk.Toplevel | None = None
+    submit_button: ttk.Button | None = None
+    cancel_button: ttk.Button | None = None
 
     root = tk.Tk()
     root.title("SnapTrack Setup")
-    root.geometry("620x680")
-    root.minsize(560, 620)
+    root.geometry("760x760")
+    root.minsize(720, 720)
     root.resizable(False, False)
-    root.configure(bg="#f8fafc")
+    root.configure(bg="#eef2ff")
     root.attributes("-topmost", True)
 
     icon_path = _icon_source_path()
@@ -76,14 +88,27 @@ def _prompt_with_gui() -> dict[str, Any] | None:
     root.grid_rowconfigure(0, weight=1)
     root.grid_columnconfigure(0, weight=1)
 
-    outer = ttk.Frame(root, padding=18)
+    style = ttk.Style(root)
+    try:
+        style.theme_use("clam")
+    except Exception:
+        pass
+
+    style.configure("Setup.TFrame", background="#eef2ff")
+    style.configure("Panel.TFrame", background="#ffffff")
+    style.configure("Title.TLabel", font=("Segoe UI", 20, "bold"), background="#ffffff", foreground="#0f172a")
+    style.configure("Body.TLabel", font=("Segoe UI", 10), background="#ffffff", foreground="#475569")
+    style.configure("Field.TLabel", font=("Segoe UI", 10, "bold"), background="#ffffff", foreground="#0f172a")
+    style.configure("Setup.TButton", font=("Segoe UI", 10, "bold"), padding=(14, 10))
+
+    outer = ttk.Frame(root, padding=18, style="Setup.TFrame")
     outer.grid(row=0, column=0, sticky="nsew")
     outer.grid_rowconfigure(0, weight=1)
     outer.grid_columnconfigure(0, weight=1)
 
-    canvas = tk.Canvas(outer, bg="#f8fafc", highlightthickness=0, bd=0)
+    canvas = tk.Canvas(outer, bg="#eef2ff", highlightthickness=0, bd=0)
     scrollbar = ttk.Scrollbar(outer, orient="vertical", command=canvas.yview)
-    scroll_frame = ttk.Frame(canvas, padding=22)
+    scroll_frame = ttk.Frame(canvas, padding=22, style="Setup.TFrame")
 
     scroll_frame.bind(
         "<Configure>",
@@ -103,28 +128,40 @@ def _prompt_with_gui() -> dict[str, Any] | None:
 
     frame = scroll_frame
 
+    panel = ttk.Frame(frame, padding=22, style="Panel.TFrame")
+    panel.pack(fill="both", expand=True)
+
     if icon_path.exists():
         try:
-            preview = tk.PhotoImage(file=str(icon_path)).subsample(4, 4)
-            ttk.Label(frame, image=preview).pack(anchor="w", pady=(0, 10))
+            preview = tk.PhotoImage(file=str(icon_path)).subsample(3, 3)
+            ttk.Label(panel, image=preview, background="#ffffff").pack(anchor="w", pady=(0, 14))
             root._snaptrack_preview = preview  # Keep a reference for Tk.
         except Exception:
             pass
 
-    ttk.Label(frame, text="SnapTrack First-Time Setup", font=("Segoe UI", 18, "bold")).pack(anchor="w", pady=(0, 8))
+    ttk.Label(panel, text="SnapTrack First-Time Setup", style="Title.TLabel").pack(anchor="w", pady=(0, 8))
     ttk.Label(
-        frame,
-        text="Enter the details provided by your admin. The tracker will save them locally and run until uninstall.",
-        wraplength=500,
-        foreground="#475569",
-    ).pack(anchor="w", pady=(0, 16))
+        panel,
+        text="Enter the employee details once. SnapTrack will save them locally, start automatically, and keep running until uninstall.",
+        wraplength=620,
+        style="Body.TLabel",
+    ).pack(anchor="w", pady=(0, 18))
+
+    details = ttk.Frame(panel, style="Panel.TFrame")
+    details.pack(fill="x", pady=(0, 14))
+    for column in range(2):
+        details.grid_columnconfigure(column, weight=1, uniform="setupcols")
+    ttk.Label(details, text="Employee details", style="Field.TLabel").grid(row=0, column=0, sticky="w")
+    ttk.Label(details, text="Connection settings", style="Field.TLabel").grid(row=0, column=1, sticky="w")
+    ttk.Label(details, text="Full name, device ID, and API token are required.", style="Body.TLabel").grid(row=1, column=0, sticky="w", pady=(4, 0))
+    ttk.Label(details, text="Server URL should point to your admin panel domain.", style="Body.TLabel").grid(row=1, column=1, sticky="w", pady=(4, 0))
 
     fields: dict[str, tk.StringVar] = {}
 
     def add_field(label: str, key: str, default: str = "", show: str | None = None) -> None:
-        ttk.Label(frame, text=label).pack(anchor="w", pady=(10, 4))
+        ttk.Label(panel, text=label, style="Field.TLabel").pack(anchor="w", pady=(12, 4))
         var = tk.StringVar(value=default)
-        entry = ttk.Entry(frame, textvariable=var, show=show)
+        entry = ttk.Entry(panel, textvariable=var, show=show)
         entry.pack(fill="x")
         fields[key] = var
 
@@ -134,9 +171,55 @@ def _prompt_with_gui() -> dict[str, Any] | None:
     add_field("Server URL", "server_url", _default_server_url())
 
     message = tk.StringVar(value="")
-    ttk.Label(frame, textvariable=message, foreground="#b91c1c").pack(anchor="w", pady=(10, 0))
+    ttk.Label(panel, textvariable=message, background="#ffffff", foreground="#b91c1c").pack(anchor="w", pady=(10, 0))
+
+    def show_toast(title: str, text: str, success: bool = True) -> None:
+        nonlocal toast_window
+
+        if toast_window is not None and toast_window.winfo_exists():
+            try:
+                toast_window.destroy()
+            except Exception:
+                pass
+
+        toast_window = tk.Toplevel(root)
+        toast_window.overrideredirect(True)
+        toast_window.attributes("-topmost", True)
+        toast_window.configure(bg="#ffffff")
+
+        width, height = 360, 120
+        screen_w = toast_window.winfo_screenwidth()
+        x = screen_w - width - 24
+        y = 24
+        toast_window.geometry(f"{width}x{height}+{x}+{y}")
+
+        border = tk.Frame(toast_window, bg="#22c55e" if success else "#ef4444", bd=0)
+        border.pack(fill="both", expand=True)
+        card = tk.Frame(border, bg="#ffffff", padx=16, pady=14)
+        card.pack(fill="both", expand=True, padx=4, pady=4)
+
+        tk.Label(
+            card,
+            text=title,
+            font=("Segoe UI", 12, "bold"),
+            bg="#ffffff",
+            fg="#0f172a",
+            anchor="w",
+        ).pack(fill="x")
+        tk.Label(
+            card,
+            text=text,
+            font=("Segoe UI", 10),
+            bg="#ffffff",
+            fg="#475569",
+            justify="left",
+            wraplength=320,
+        ).pack(fill="x", pady=(8, 0))
+        toast_window.after(2200, lambda: toast_window.destroy() if toast_window and toast_window.winfo_exists() else None)
 
     def submit() -> None:
+        nonlocal submit_button, cancel_button
+
         values = {key: var.get().strip() for key, var in fields.items()}
 
         if not values["full_name"] or not values["device_id"] or not values["api_token"] or not values["server_url"]:
@@ -157,17 +240,35 @@ def _prompt_with_gui() -> dict[str, Any] | None:
                 "timeout_seconds": 20,
             }
         )
+        save_config(result, config_path)
+        message.set("")
+        if submit_button is not None:
+            submit_button.state(["disabled"])
+        if cancel_button is not None:
+            cancel_button.state(["disabled"])
+        show_toast("Setup complete", "SnapTrack has been installed successfully and is ready to run.")
+        root.after(1800, root.destroy)
+
+    def cancel() -> None:
+        cancelled["value"] = True
         root.destroy()
 
     footer = ttk.Frame(outer, padding=(22, 14, 22, 22))
-    footer.grid(row=1, column=0, columnspan=2, sticky="ew")
+    footer.grid(row=1, column=0, sticky="ew")
     footer.grid_columnconfigure(0, weight=1)
 
     ttk.Separator(footer).grid(row=0, column=0, columnspan=2, sticky="ew", pady=(0, 14))
-    ttk.Button(footer, text="Save and Start", command=submit).grid(row=1, column=1, sticky="e")
+    cancel_button = ttk.Button(footer, text="Cancel setup", command=cancel, style="Setup.TButton")
+    cancel_button.grid(row=1, column=0, sticky="w")
+    submit_button = ttk.Button(footer, text="Save and Start", command=submit, style="Setup.TButton")
+    submit_button.grid(row=1, column=1, sticky="e")
 
-    root.protocol("WM_DELETE_WINDOW", root.destroy)
+    root.bind("<Escape>", lambda _event: cancel())
+    root.protocol("WM_DELETE_WINDOW", cancel)
     root.mainloop()
+    if cancelled["value"]:
+        return _SETUP_CANCELLED
+
     return result or None
 
 

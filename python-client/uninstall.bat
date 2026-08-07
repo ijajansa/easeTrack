@@ -13,5 +13,7 @@ if exist "%APP_DIR%" rmdir /S /Q "%APP_DIR%"
 if exist "%INSTALL_DIR%" rmdir /S /Q "%INSTALL_DIR%"
 if exist "%DATA_DIR%" rmdir /S /Q "%DATA_DIR%"
 
+powershell -NoProfile -ExecutionPolicy Bypass -Command "Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show('SnapTrack was removed successfully.','SnapTrack',[System.Windows.Forms.MessageBoxButtons]::OK,[System.Windows.Forms.MessageBoxIcon]::Information) | Out-Null"
+
 echo SnapTrack removed.
 endlocal
