@@ -65,7 +65,7 @@ class Device extends Model
 
     public function getWorkingStatusLabelAttribute(): string
     {
-        return $this->working_seconds < (8 * 3600) ? 'Under target' : 'Target met';
+        return $this->working_seconds < (7 * 3600) ? 'Under target' : 'Target met';
     }
 
     public function getIdleStatusLabelAttribute(): string
@@ -75,7 +75,7 @@ class Device extends Model
 
     public function getWorkingStatusColorAttribute(): string
     {
-        return $this->working_seconds < (8 * 3600) ? 'red' : 'green';
+        return $this->working_seconds < (7 * 3600) ? 'red' : 'green';
     }
 
     public function getIdleStatusColorAttribute(): string
@@ -242,14 +242,6 @@ class Device extends Model
         $minutes = intdiv($seconds % 3600, 60);
         $remainingSeconds = $seconds % 60;
 
-        if ($hours > 0) {
-            return sprintf('%02dh %02dm %02ds', $hours, $minutes, $remainingSeconds);
-        }
-
-        if ($minutes > 0) {
-            return sprintf('%02dm %02ds', $minutes, $remainingSeconds);
-        }
-
-        return sprintf('%02ds', $remainingSeconds);
+        return sprintf('%02d:%02d:%02d', $hours, $minutes, $remainingSeconds);
     }
 }

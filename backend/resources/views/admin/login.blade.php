@@ -37,7 +37,8 @@
             place-items: center;
             padding: 24px;
             position: relative;
-            overflow: hidden;
+            overflow-x: hidden;
+            overflow-y: auto;
         }
 
         body::before {
@@ -250,27 +251,90 @@
         }
 
         @media (max-width: 960px) {
+            body {
+                place-items: start center;
+            }
+
             .login-shell {
                 grid-template-columns: 1fr;
+                width: min(680px, 100%);
             }
 
             .login-brand {
-                min-height: 360px;
+                min-height: 280px;
+                padding: 28px;
+            }
+
+            .login-panel {
+                padding: 28px;
             }
         }
 
         @media (max-width: 640px) {
             body {
-                padding: 12px;
+                padding: 10px;
             }
 
-            .login-brand,
             .login-panel {
-                padding: 24px;
+                padding: 22px;
+                border-radius: 26px;
+            }
+
+            .login-brand {
+                display: none;
+            }
+
+            .login-shell {
+                border-radius: 26px;
+            }
+
+            .login-card {
+                justify-content: flex-start;
+                gap: 0;
+            }
+
+            .logo-wrap {
+                align-items: flex-start;
+                gap: 12px;
+            }
+
+            .logo-wrap img {
+                width: 56px;
+                height: 56px;
+                padding: 7px;
+            }
+
+            .brand-chip {
+                font-size: 12px;
             }
 
             .login-panel h2 {
                 font-size: 26px;
+            }
+
+            .hint {
+                font-size: 14px;
+                line-height: 1.65;
+            }
+
+            .form {
+                margin-top: 22px;
+                gap: 14px;
+            }
+
+            input, .submit {
+                border-radius: 14px;
+                min-height: 48px;
+            }
+
+            .submit {
+                margin-top: 4px;
+                width: 100%;
+            }
+
+            .footer-note {
+                margin-top: 16px;
+                font-size: 12px;
             }
         }
     </style>

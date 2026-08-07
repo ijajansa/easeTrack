@@ -7,7 +7,7 @@
             <h2>See your team's work, idle time, and screenshots in one calm, powerful view.</h2>
             <p>
                 Track employee devices, compare working and idle patterns, and jump into details without hunting through tables.
-                The interface is designed to feel premium enough for investor demos and internal leadership reviews.
+                The interface is designed for clear internal review and day-to-day monitoring.
             </p>
 
             <div class="actions" style="margin-top:18px;">
@@ -146,16 +146,16 @@
                             <div class="muted">{{ $employee->device_id }}</div>
                         </td>
                         <td>
-                            <span style="font-weight:800; color: {{ $employee->working_status_color }};">
-                                {{ $employee->working_duration_label }}
+                            <span style="font-weight:800; color: {{ $employee->report_working_status_color }};">
+                                {{ $employee->report_working_duration_label }}
                             </span>
-                            <div class="muted">{{ number_format($employee->working_hours, 2) }} hrs &middot; {{ $employee->working_status_label }}</div>
+                            <div class="muted">{{ $reportDate->format('M d, Y') }} &middot; {{ $employee->report_working_status_label }}</div>
                         </td>
                         <td>
-                            <span style="font-weight:800; color: {{ $employee->idle_status_color }};">
-                                {{ $employee->idle_duration_label }}
+                            <span style="font-weight:800; color: {{ $employee->report_idle_status_color }};">
+                                {{ $employee->report_idle_duration_label }}
                             </span>
-                            <div class="muted">{{ number_format($employee->idle_hours, 2) }} hrs &middot; {{ $employee->idle_status_label }}</div>
+                            <div class="muted">{{ $reportDate->format('M d, Y') }} &middot; {{ $employee->report_idle_status_label }}</div>
                         </td>
                         <td>
                             <div style="display:flex; flex-direction:column; gap:6px;">

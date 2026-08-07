@@ -11,7 +11,7 @@
             </div>
         </div>
 
-        <form method="GET" class="form-row">
+        <form method="GET" action="{{ route('admin.employees.index') }}" class="form-row">
             <div>
                 <label for="search">Search</label>
                 <input id="search" type="text" name="search" value="{{ $filters['search'] ?? '' }}" placeholder="Employee name or device id">
@@ -23,6 +23,10 @@
                     <option value="active" @selected(($filters['status'] ?? '') === 'active')>Active</option>
                     <option value="inactive" @selected(($filters['status'] ?? '') === 'inactive')>Inactive</option>
                 </select>
+            </div>
+            <div>
+                <label for="report_date">Report date</label>
+                <input id="report_date" type="date" name="report_date" value="{{ $filters['report_date'] ?? '' }}">
             </div>
             <div style="align-self:end;">
                 <button type="submit" class="btn primary" style="width:100%;">Apply</button>
@@ -47,6 +51,10 @@
             <div class="muted">Live badges</div>
             <h2>On</h2>
         </div>
+        <div class="card soft">
+            <div class="muted">Report date</div>
+            <h2>{{ $reportDate->format('M d') }}</h2>
+        </div>
     </div>
 
     <div class="card soft">
@@ -55,10 +63,10 @@
                 <tr>
                     <th>Employee</th>
                     <th>Device</th>
-                    <th>Working Hours</th>
-                    <th>Idle Hours</th>
+                    <th>Working Today</th>
+                    <th>Idle Today</th>
                     <th>Last Seen</th>
-                    <th>Screenshots</th>
+                    <th>Screenshots Today</th>
                     <th>Status</th>
                     <th>Details</th>
                 </tr>
@@ -74,16 +82,16 @@
                             <code>{{ $employee->device_id }}</code>
                         </td>
                         <td>
-                            <span style="font-weight:800; color: {{ $employee->working_status_color }};">
-                                {{ $employee->working_duration_label }}
+                            <span style="font-weight:800; color: {{ $employee->report_working_status_color }};">
+                                {{ $employee->report_working_duration_label }}
                             </span>
-                            <div class="muted">{{ number_format($employee->working_hours, 2) }} hrs &middot; {{ $employee->working_status_label }}</div>
+                            <div class="muted">{{ $reportDate->format('M d, Y') }} &middot; {{ $employee->report_working_status_label }}</div>
                         </td>
                         <td>
-                            <span style="font-weight:800; color: {{ $employee->idle_status_color }};">
-                                {{ $employee->idle_duration_label }}
+                            <span style="font-weight:800; color: {{ $employee->report_idle_status_color }};">
+                                {{ $employee->report_idle_duration_label }}
                             </span>
-                            <div class="muted">{{ number_format($employee->idle_hours, 2) }} hrs &middot; {{ $employee->idle_status_label }}</div>
+                            <div class="muted">{{ $reportDate->format('M d, Y') }} &middot; {{ $employee->report_idle_status_label }}</div>
                         </td>
                         <td>
                             <div style="display:flex; flex-direction:column; gap:6px;">
@@ -116,7 +124,7 @@
                                 <span class="muted" style="font-size:12px;">Screenshot: {{ $employee->last_screenshot_label }}</span>
                             </div>
                         </td>
-                        <td>{{ $employee->screenshots_count }}</td>
+                        <td>{{ $employee->report_screenshots_count }}</td>
                         <td>
                             <span class="badge" style="background: {{ $employee->status === 'active' ? 'rgba(22,163,74,0.12)' : 'rgba(220,38,38,0.12)' }}; color: {{ $employee->status === 'active' ? '#15803d' : '#b91c1c' }};">
                                 {{ ucfirst($employee->status) }}
